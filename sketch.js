@@ -13,11 +13,16 @@ var cactusgp;
 var bulletgp;
 var coingp;
 
+var gameOver, gameOverImage;
+var reset, resetImage;
+
 var bg;
 var ground;
 
 var score = 0;
 var life = 5;
+
+var gameState = "play";
 
 
 function preload() 
@@ -35,7 +40,10 @@ function preload()
   bulletImage = loadImage("bullet.png")
 
   coinImage = loadImage("coin.png")
+
+  gameOverImage = loadImage("gameover.png")
   
+  resetImage = loadImage("reset.png")
 }
 
 function setup()
@@ -47,16 +55,23 @@ function setup()
   bg.velocityX = -1
   
   ground = createSprite(350,450,700,20)
+  ground.visible = false
   
   hunter = createSprite(100,350,20,20)
   hunter.addAnimation("hunter",hunterImage)
   hunter.scale = 1
-  hunter.debug = true
   hunter.setCollider("rectangle",0,0,50,160)
   
-  bullet = createSprite(115,376,10,10)
+  gameOver = createSprite(350,300,20,20)  
+  gameOver.addImage(gameOverImage)
+  gameOver.scale = 1
 
-  
+  reset = createSprite(355,360,20,20)
+  reset.addImage(resetImage)
+  reset.scale = 0.2
+
+  gameOver.visible = false
+  reset.visible = false
 
   coingp = new Group()
   cactusgp = new Group()
@@ -64,15 +79,16 @@ function setup()
   bulletgp = new Group()
   rockgp = new Group
   
-  fill("black")
-  
+  fill("black") 
  
 }
 
 function draw()
 {
+
   background("black")
-  
+if(gameState === "play")
+{
   if(bg.x -220<0)
     {
       bg.x = bg.width/2
@@ -108,21 +124,60 @@ function draw()
     score = score+10
   }
     
-     
+  if(life === 0)
+  {
+    gameState = "end"
+  }  
+
+  if(bulletgp.isTouching(animalgp))
+  {
+    animalgp.destroyEach()
+    bulletgp.destroyEach()
+    score = score + 5
+  }
+
   Spawnanimals()
   Spawnrock()
   Spawncactus()
   Spawncoins()
+}
+
+if(gameState === "end")
+{
+ gameOver.visible = true
+ reset.visible = true
+ bg.velocityX = 0
+ animalgp.setVelocityXEach(0)
+ cactusgp.setVelocityXEach(0)
+ hunter.velocityY = 0
+ rockgp.setVelocityXEach(0)
+ coingp.setVelocityXEach(0)
+ bulletgp.setVelocityXEach(0)
+
+ animalgp.setLifetimeEach(-1)
+ cactusgp.setLifetimeEach(-1)
+ rockgp.setLifetimeEach(-1)
+ coingp.setLifetimeEach(-1)
+ bulletgp.setLifetimeEach(-1)
+
+ if(mousePressedOver(reset))
+ {
+  gameState = "play"
+  score = 0
+  life = 5
+  gameOver.visible = false
+  reset.visible = false
+  bg.velocityX = -1
+ }
+}
+
   drawSprites()
   
   fill("red")
   textSize(15)
   text("LIFE :- "+life,20,40)
 
-  text("SCORE :- "+score,600,40)
-
-  text(mouseX+","+mouseY,mouseX,mouseY)
-   
+  text("SCORE :- "+score,600,40)   
   
 }
 
@@ -135,7 +190,6 @@ function Spawnanimals()
     lion.scale= 0.5
   lion.velocityX = -5
   lion.lifetime = 150
-  lion.debug = true
   animalgp.add(lion)
   }
 }
@@ -149,7 +203,6 @@ function Spawnrock ()
     rock.scale = 0.5
     rock.velocityX = -5  
     rock.lifetime = 150
-    rock.debug = true
     rockgp.add(rock)
   }
 }
@@ -163,7 +216,6 @@ function Spawncactus ()
    cactus.scale = 0.5
    cactus.velocityX = -5
    cactus.lifetime = 150
-   cactus.debug = true
    cactusgp.add(cactus)
  }
 }
@@ -174,8 +226,7 @@ function Spawnbullets ()
  bullet.addImage(bulletImage)
  bullet.scale = 0.1
  bullet.velocityX = 5 
- bullet.lifetime = 150
- bullet.debug = true
+ bullet.lifetime = 150 
  bulletgp.add(bullet) 
 }
 
@@ -187,8 +238,7 @@ function Spawncoins ()
     coin.addImage(coinImage)
     coin.scale = 0.3
     coin.velocityX = -5
-    coin.lifetime = 150
-    coin.debug = true
+    coin.lifetime = 150    
     coingp.add(coin)
   }
 }
